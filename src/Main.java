@@ -23,17 +23,23 @@ public class Main {
         // Construct the file path
         String filePath = System.getProperty("user.dir") + File.separator + fileName;
 
+        // Check if the file exists, if not, create a new file
+        File file = new File(filePath);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                System.out.println("Error creating the file.");
+                System.exit(1);
+            }
+        }
+
         ReadFileAndAddToCollection fileReader = new ReadFileAndAddToCollection(fileName);
         WriteToTextFile fileWriter = new WriteToTextFile(fileName);
 
         // Reading existing books from the file and adding them to the library
-        List<String> lines = fileReader.readLines();
-        for (String line : lines) {
-            String[] parts = line.split(",");
-            int id = Integer.parseInt(parts[0]);
-            String title = parts[1];
-            String author = parts[2];
-            Book book = new Book(id, title, author);
+        List<Book> books = fileReader.readLines(); // Change from List<String> to List<Book>
+        for (Book book : books) {
             library.addBook(book);
         }
 
@@ -41,8 +47,11 @@ public class Main {
             System.out.println("\nMenu:");
             System.out.println("1: Add a book");
             System.out.println("2: Remove a book by ID");
-            System.out.println("3: View entire collection");
-            System.out.println("4: Save and exit");
+            System.out.println("3: Remove a book by Title");
+            System.out.println("4: Check out a book");
+            System.out.println("5: Check in a book");
+            System.out.println("6: View entire collection");
+            System.out.println("7: Save and exit");
 
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline character left by nextInt()
@@ -54,71 +63,66 @@ public class Main {
                     System.out.println("Enter author:");
                     String author = scanner.nextLine();
                     Book newBook = new Book(library.getBooks().size() + 1, title, author);
-                    library.addBook(newBook);
-                    System.out.println("Book added successfully!");
+                    books.add(newBook);  // Update the books list
+                    library.addBook(newBook);  // Update the library object
+                    System.out.println("Book added successfully: " + newBook);
                     break;
                 case 2:
                     System.out.println("Enter book ID to remove:");
                     int bookId = scanner.nextInt();
                     library.removeBookById(bookId);
                     System.out.println("Book removed successfully!");
+                    // Update the books list after removing the book
+                    books = library.getBooks();
                     break;
                 case 3:
-                    System.out.println("Current Collection:");
-                    List<Book> books = library.getBooks();
+                    System.out.println("Enter book title to remove:");
+                    String titleToRemove = scanner.nextLine();
+                    library.removeBookByTitle(titleToRemove);
+                    System.out.println("Book removed successfully!");
+                    books = library.getBooks();
                     for (Book book : books) {
                         System.out.println(book);
                     }
                     break;
                 case 4:
+                    System.out.println("Enter book title to check out:");
+                    String titleToCheckOut = scanner.nextLine();
+                    library.checkOutBook(titleToCheckOut);
+                    System.out.println("Current Collection:");
+                    for (Book book : books) {
+                        System.out.println(book);
+                    }
+                    break;
+                case 5:
+                    System.out.println("Enter book title to check in:");
+                    String titleToCheckIn = scanner.nextLine();
+                    boolean checkedIn = library.checkInBook(titleToCheckIn);
+                    if (!checkedIn) {
+                        System.out.println("Book checked in successfully!");
+                    } else {
+                        System.out.println("Book is not checked out or does not exist.");
+                    }
+                    for (Book book : books) {
+                        System.out.println(book);
+                    }
+                    break;
+                case 6:
+                    System.out.println("Printing the current collection...");
+                    System.out.println("Current Collection:");
+                    for (Book book : books) {
+                        System.out.println(book);
+                    }
+                    break;
+                case 7:
                     // Save books to the file before exiting
-                    fileWriter.writeLines(library.getBooks(), filePath);
+                    fileWriter.writeLines(books, filePath);
                     System.out.println("Library saved. Exiting...");
                     System.exit(0);
                     break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
-        }
-    }
-
-    public List<Book> readLines() {
-        List<Book> books = new ArrayList<>();
-        File file = new File("Books.txt");
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(","); // Split by comma
-                if (parts.length >= 3) {
-                    try {
-                        int id = Integer.parseInt(parts[0]);
-                        String title = parts[1];
-                        String author = parts[2];
-                        Book book = new Book(id, title, author);
-                        books.add(book);
-                    } catch (NumberFormatException e) {
-                        System.out.println("Invalid format for line: " + line);
-                    }
-                } else {
-                    System.out.println("Invalid format for line: " + line);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return books;
-    }
-
-    public void writeLines(List<Book> books, String fileName) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (Book book : books) {
-                writer.write(book.getId() + " " + book.getTitle());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

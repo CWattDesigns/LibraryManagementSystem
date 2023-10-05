@@ -18,7 +18,7 @@ public class ReadFileAndAddToCollection {
     public ReadFileAndAddToCollection(String filePath) {
         this.filePath = filePath;
     }
-        public List<String> readLines(){
+    public List<Book> readLines() {
         /*
         Name: readLines();
         Description: Creates an Array List, then using the pathing to the file listed above and the BufferedReader method from Java.io
@@ -26,19 +26,36 @@ public class ReadFileAndAddToCollection {
         Arguments: None
         Return value: Returns an Array List called "lines"
          */
-        List<String> lines = new ArrayList<>();
-        File file = new File("C:\\Users\\Mystery\\IdeaProjects\\Library Management System\\Books.txt");
+        List<Book> books = new ArrayList<>(); // Create a new ArrayList<Book> to store books
+        File file = new File(this.filePath);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String s;
-            while ((s = reader.readLine()) != null) {
-                lines.add(s);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(":"); // Split by ":"
+                if (parts.length >= 2) {
+                    try {
+                        int id = Integer.parseInt(parts[0].trim());
+                        String[] bookInfo = parts[1].split(","); // Split book details by ","
+                        if (bookInfo.length >= 2) {
+                            String title = bookInfo[0].trim();
+                            String author = bookInfo[1].trim();
+                            Book book = new Book(id, title, author);
+                            books.add(book); // Add the parsed book to the list
+                        } else {
+                            System.out.println("Invalid format for line: " + line);
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid format for line: " + line);
+                    }
+                } else {
+                    System.out.println("Invalid format for line: " + line);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return lines;
+        return books; // Return the list of parsed books
     }
 }
-
