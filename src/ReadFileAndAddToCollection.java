@@ -4,15 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class ReadFileAndAddToCollection {
-    /*
+/*
    Name: Chris Wattles
    Course: CEN-3024C
-   Date: 9/9/2023
+   Date: 10/5/2023
    Class: ReadFileAndAddToCollection
-   Description: This class creates a ReadFileAndAddToCollection class. The ReadFileAndAddToCollection objects can use the filePath variable with
+   Description: The ReadFileAndAddToCollection objects can use the filePath variable with
                 BufferedReader and FileReader from Java.io to read in lines from the text file which contains the collection of books.
     */
+
+public class ReadFileAndAddToCollection {
+
     private String filePath;
 
     public ReadFileAndAddToCollection(String filePath) {
@@ -32,16 +34,18 @@ public class ReadFileAndAddToCollection {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":"); // Split by ":"
+                //Splits the string by ":" which allows the program to separate the id from the rest of the string
+                String[] parts = line.split(":");
                 if (parts.length >= 2) {
                     try {
                         int id = Integer.parseInt(parts[0].trim());
-                        String[] bookInfo = parts[1].split(","); // Split book details by ","
+                        String[] bookInfo = parts[1].split(","); // Split book title and book author by ","
                         if (bookInfo.length >= 2) {
                             String title = bookInfo[0].trim();
                             String author = bookInfo[1].trim();
                             Book book = new Book(id, title, author);
-                            books.add(book); // Add the parsed book to the list
+                            // Add the parsed book to the list
+                            books.add(book);
                         } else {
                             System.out.println("Invalid format for line: " + line);
                         }
@@ -56,6 +60,6 @@ public class ReadFileAndAddToCollection {
             e.printStackTrace();
         }
 
-        return books; // Return the list of parsed books
+        return books;
     }
 }

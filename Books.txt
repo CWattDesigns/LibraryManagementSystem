@@ -1,2 +1,6 @@
-1, To Kill a Mockingbird,Harper Lee
-2, 1984,George Orwell
+1: To Kill a Mockingbird, Harper Lee, false
+3: The Adventures of Dog, Neko Corgi, false
+4: Dragons, Snoop Dog, false
+5: Dragons 2, Snoop Dog, true
+6: James Bond, Ian Flemming, false
+8: Snoop Dog 2, Dragons, false
