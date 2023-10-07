@@ -15,7 +15,7 @@ import java.util.List;
                 5. Checking in a book by title
     */
 public class Library {
-    private List<Book> books;
+    private static List<Book> books;
 
     /*
     Name: Library
@@ -28,8 +28,9 @@ public class Library {
     }
 
     //Used to add book objects
-    public void addBook(Book book) {
+    public static short addBook(Book book) {
         books.add(book);
+        return 0;
     }
 
     //Removes books by specified id
@@ -75,6 +76,7 @@ public class Library {
         for (Book book : books) {
             if (book.getTitle().equalsIgnoreCase(title) && book.isCheckedOut()) {
                 book.checkIn();
+                System.out.println("Book checked in successfully! Due Date: " + book.getDueDate());
                 return true;
             }
         }

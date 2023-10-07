@@ -9,7 +9,7 @@ import java.time.LocalDate;
  */
 
 public class Book {
-    private int id;
+    public int id;
     private String title;
     private String author;
     public boolean checkedOut;
@@ -64,6 +64,7 @@ public class Book {
     //Changes the value of the book object's checkout parameter
     public void checkIn() {
         checkedOut = false;
+        dueDate = null;
     }
 
     // toString() method for easy printing
