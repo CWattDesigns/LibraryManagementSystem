@@ -50,13 +50,19 @@ public class Library {
      */
     public void checkOutBook(String title) {
         for (Book book : books) {
-            if (book.getTitle().equalsIgnoreCase(title) && !book.isCheckedOut()) {
+            if (book.getTitle().equalsIgnoreCase(title)) {
+                if (book.isCheckedOut()) {
+                    System.out.println("Book is already checked out and not available for checkout.");
+                    return; // Return immediately if the book is already checked out
+                }
+
                 book.checkOut();
-                System.out.println("Book checked out successfully!");
+                System.out.println("Book checked out successfully! Due Date: " + book.getDueDate());
                 return;
             }
         }
-        System.out.println("Book not available for checkout or does not exist.");
+
+        System.out.println("Book not found in the library.");
     }
 
     /*
@@ -78,5 +84,3 @@ public class Library {
         return books;
     }
 }
-
-

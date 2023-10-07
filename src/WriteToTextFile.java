@@ -35,7 +35,7 @@ public class WriteToTextFile {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (Book book : books) {
                 String checkedOutStatus = book.isCheckedOut() ? "true" : "false";
-                String bookInfo = book.getId() + ": " + book.getTitle() + ", " + book.getAuthor() + ", " + book.isCheckedOut();
+                String bookInfo = book.getId() + ": " + book.getTitle() + ", " + book.getAuthor() + ", Due Back:" + book.getDueDate();;
                 writer.write(bookInfo);
                 writer.newLine();
             }
@@ -44,4 +44,3 @@ public class WriteToTextFile {
         }
     }
 }
-

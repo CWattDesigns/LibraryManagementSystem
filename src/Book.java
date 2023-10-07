@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 /*
    Name: Chris Wattles
    Course: CEN-3024C
@@ -12,6 +13,7 @@ public class Book {
     private String title;
     private String author;
     public boolean checkedOut;
+    private LocalDate dueDate;
 
     /*
     Name: Book
@@ -24,6 +26,7 @@ public class Book {
         this.title = title;
         this.author = author;
         this.checkedOut = false;
+        this.dueDate = null;
     }
 
     // Getters
@@ -43,10 +46,19 @@ public class Book {
     public boolean isCheckedOut() {
         return checkedOut;
     }
+    // Getters and setters for dueDate
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
 
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
     //Changes the value of the book object's checkout parameter
     public void checkOut() {
         checkedOut = true;
+        // set due date to 4 weeks from the current date when checking out
+        this.dueDate = LocalDate.now().plusWeeks(4);
     }
 
     //Changes the value of the book object's checkout parameter
