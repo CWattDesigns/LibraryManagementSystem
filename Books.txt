@@ -4,5 +4,4 @@
 333: Chicken, Sam: available
 17: Seven, Rhonda: available
 14: Dragons 2, Snoop Dog: available
-146: Monsters, Ohma: available
-1234: Bleach, available
+146: Monsters, checked out

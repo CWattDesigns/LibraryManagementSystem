@@ -242,7 +242,7 @@ public class LibraryManagementGUI extends JFrame{
                             //Alters the status to checked out
                             if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("available")) {
                                 bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", checked out");
+                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + " checked out");
                             } else {
                                 updatedBooks.add(line);
                             }
@@ -291,7 +291,7 @@ public class LibraryManagementGUI extends JFrame{
                             //Alters the status to available
                             if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("checked out")) {
                                 bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", available");
+                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + " available");
                             } else {
                                 updatedBooks.add(line);
                             }
