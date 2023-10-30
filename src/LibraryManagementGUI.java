@@ -233,7 +233,7 @@ public class LibraryManagementGUI extends JFrame{
                     while ((line = reader.readLine()) != null) {
                         //Split the line by ":" and ","
                         String[] parts = line.split(":|\\,");
-                        if (parts.length >= 3) {
+                        if (parts.length >= 4) {
                             String barcode = parts[0].trim();
                             String bookTitle = parts[1].trim();
                             String bookAuthor = parts[2].trim();
@@ -242,7 +242,7 @@ public class LibraryManagementGUI extends JFrame{
                             //Alters the status to checked out
                             if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("available")) {
                                 bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + " checked out");
+                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + ": checked out");
                             } else {
                                 updatedBooks.add(line);
                             }
@@ -282,7 +282,7 @@ public class LibraryManagementGUI extends JFrame{
                     while ((line = reader.readLine()) != null) {
                         //Split the line by ":" and ","
                         String[] parts = line.split(":|\\,");
-                        if (parts.length >= 3) {
+                        if (parts.length >= 4) {
                             String barcode = parts[0].trim();
                             String bookTitle = parts[1].trim();
                             String bookAuthor = parts[2].trim();
@@ -291,7 +291,7 @@ public class LibraryManagementGUI extends JFrame{
                             //Alters the status to available
                             if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("checked out")) {
                                 bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + " available");
+                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + ": available");
                             } else {
                                 updatedBooks.add(line);
                             }
