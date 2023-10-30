@@ -1,6 +1,8 @@
-1: To Kill a Mockingbird, Harper Lee, false
-3: The Adventures of Dog, Neko Corgi, false
-4: Dragons, Snoop Dog, false
-5: Dragons 2, Snoop Dog, true
-6: James Bond, Ian Flemming, false
-8: Snoop Dog 2, Dragons, false
+102: Hamlet, William Shakespeare: available
+12: Dragons, Snoop Dog: available
+111: Hello World, Jimmy: available
+333: Chicken, Sam: available
+17: Seven, Rhonda: available
+14: Dragons 2, Snoop Dog: available
+146: Monsters, Ohma: available
+1234: Bleach, available
