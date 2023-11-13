@@ -33,5 +33,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="sqlite-jdbc-3.43.2.2-javadoc" level="project" />
   </component>
 </module>
