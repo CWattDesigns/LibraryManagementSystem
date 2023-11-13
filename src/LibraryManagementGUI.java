@@ -2,14 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.*;
+import java.sql.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LibraryManagementGUI extends JFrame{
-    private JLabel lbFileName;
-    private JTextField tfFileName;
     private JButton btnSubmit;
     private JPanel mainPanel;
     private JButton btnExit;
@@ -30,87 +28,74 @@ public class LibraryManagementGUI extends JFrame{
     private JLabel lbCheckin;
     private JTextField txtCheckin;
     private JButton btnCheckin;
-    private List<String> booksToAdd;
-    private File file;
     private Set<String> uniqueBarcodes;
-    private List<String> validBooks;
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/library_db"; //"library_db" was my database name. Replace this with yours and verify the port info.
+    private static final String JDBC_USER = "user"; //Update this with your instance username
+    private static final String JDBC_PASSWORD = "password"; //Update this with your instance password
+
+    private Connection connection;
 
     /*
     Name: Chris Wattles
     Course: CEN-3024C
-    Date: 10/29/2023
-    Class: Main
+    Date: 11/12/2023
+    Class: LibraryManagementGUI
     Description: This is a GUI built in Intellij which performs the operations of the Library Management System through a user-friendly interface.
                  Users can select from a number of options which include:
-                 1. Selecting which file will be used to store the books
-                 2. Adding multiple books at a time
-                 3. Removing books by ID (barcode)
-                 4. Removing books by Title
-                 5. Checking a book out
-                 6. Checking a book in
-                 7. Printing the current collection of books
-                 8. Exiting the GUI
+                 1. Adding multiple books at a time
+                 2. Removing books by ID (barcode)
+                 3. Removing books by Title
+                 4. Checking a book out
+                 5. Checking a book in
+                 6. Printing the current collection of books
+                 7. Exiting the GUI
      */
-    public LibraryManagementGUI(){
+    public LibraryManagementGUI() {
         setContentPane(mainPanel);
         setTitle("Library Management System");
         setSize(610, 360);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setVisible(true);
-        file = null;
+
+        try {
+            // Establish the database connection
+            connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error connecting to the database: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         jpBookAdd.setLayout(new BorderLayout());
-        (textArea1).setBorder(new JTextField().getBorder());
-
-        booksToAdd = new ArrayList<>();
+        textArea1.setBorder(new JTextField().getBorder());
 
         uniqueBarcodes = new HashSet<>();
-        validBooks = new ArrayList<>();
 
-        //Submit button checks for a valid filename using user input
-        btnSubmit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (file == null){
-                    String fileName = tfFileName.getText().trim();
-                    file = new File(fileName);
-                }
-
-                if (file.exists()){
-                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                        // Read the file content if needed
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(null, "Error reading the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "File not found!", "Error", JOptionPane.ERROR_MESSAGE);
-                    file = null;
-                }
-            }
-        });
-
-        //AddBooks button allows users to add multiple books at a time. When pressed this button checks to make sure no duplicate IDs were entered, then writes to the file
         btnAddBooks.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String booksInput = textArea1.getText().trim();
-
                 String[] booksArray = booksInput.split("\\n");
-                validBooks.clear();
 
-                // Add non-empty and unique books to the validBooks list
                 for (String book : booksArray) {
                     String trimmedBook = book.trim();
+                    String[] parts = trimmedBook.split(":", -1);
 
-                    // Split the book entry into barcode and book information
-                    String[] parts = trimmedBook.split(":");
                     if (parts.length >= 2) {
                         String barcode = parts[0].trim();
-
-                        // Check if the barcode is unique
                         if (!uniqueBarcodes.contains(barcode)) {
                             uniqueBarcodes.add(barcode);
-                            validBooks.add(trimmedBook);
+
+                            // Insert the book into the database
+                            String insertQuery = "INSERT INTO books (barcode, title, status) VALUES (?, ?, ?)";
+                            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                                preparedStatement.setString(1, barcode);
+                                preparedStatement.setString(2, parts[1].trim());  // Use index 1 for title
+                                preparedStatement.setString(3, "available");
+                                preparedStatement.executeUpdate();
+                            } catch (SQLException ex) {
+                                ex.printStackTrace();
+                                JOptionPane.showMessageDialog(null, "Error inserting the book into the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            }
                         } else {
                             JOptionPane.showMessageDialog(null, "Duplicate barcode found: " + barcode, "Error", JOptionPane.ERROR_MESSAGE);
                         }
@@ -120,16 +105,6 @@ public class LibraryManagementGUI extends JFrame{
                 }
 
                 textArea1.setText("");
-
-                // Append the valid books to the file
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                    for (String book : validBooks) {
-                        writer.write(book + ": available");
-                        writer.newLine();
-                    }
-                } catch (IOException x) {
-                    JOptionPane.showMessageDialog(null, "Error writing to the file: " + x.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
             }
         });
 
@@ -137,205 +112,120 @@ public class LibraryManagementGUI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 String barcode = txtBarcodeRemoval.getText().trim();
-                List<String> updatedBooks= new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    boolean bookFound = false;
-
-                    while ((line = reader.readLine()) != null) {
-                        // Split the line into barcode and book information
-                        String[] parts = line.split(":");
-                        if (parts.length >= 2) {
-                            String bookBarcode = parts[0].trim();
-
-                            if (bookBarcode.equals(barcode)) {
-                                bookFound = true;
-                                continue;
-                            }
-                        }
-
-                        updatedBooks.add(line);
-                    }
-
-                    // Update the file with the books that were not removed
-                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                        for (String book : updatedBooks) {
-                            writer.write(book);
-                            writer.newLine();
-                        }
-                    }
-
-                    if (bookFound) {
+                // Execute SQL to delete the book by barcode
+                String deleteQuery = "DELETE FROM books WHERE barcode = ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+                    preparedStatement.setString(1, barcode);
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
                         JOptionPane.showMessageDialog(null, "Book with barcode " + barcode + " removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(null, "Book with barcode " + barcode + " not found!", "Not Found", JOptionPane.WARNING_MESSAGE);
                     }
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, "Error reading/writing the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error deleting the book: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-        //RemoveByTitle takes user input titles and removes those books if they are found in the Library Management System
         btnRemoveByTitle.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String title = txtTitleRemoval.getText().trim();
-                List<String> updatedBooks= new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    boolean bookFound = false;
-
-                    while ((line = reader.readLine()) != null) {
-                        // Split the line by ":" and ","
-                        String[] parts = line.split(":|\\,");
-                        if (parts.length >= 2) {
-                            String bookTitle = parts[1].trim();
-
-                            if (bookTitle.equals(title)) {
-                                bookFound = true;
-                                continue;
-                            }
-                        }
-                        updatedBooks.add(line);
-                    }
-
-                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                        for (String book : updatedBooks) {
-                            writer.write(book);
-                            writer.newLine();
-                        }
-                    }
-
-                    if (bookFound) {
+                // Execute SQL to delete the book by title
+                String deleteQuery = "DELETE FROM books WHERE title = ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+                    preparedStatement.setString(1, title);
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
                         JOptionPane.showMessageDialog(null, "Book with title " + title + " removed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(null, "Book with title " + title + " not found!", "Not Found", JOptionPane.WARNING_MESSAGE);
                     }
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, "Error reading/writing the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error deleting the book: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+
 
         //CheckOut button allows a user to check out a book. When a book is checked out, it's status is changed from "available" to "checked out"
         btnCheckOut.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String title = txtBookCheckout.getText().trim();
-                boolean bookFound = false;
-                List<String> updatedBooks = new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        //Split the line by ":" and ","
-                        String[] parts = line.split(":|\\,");
-                        if (parts.length >= 4) {
-                            String barcode = parts[0].trim();
-                            String bookTitle = parts[1].trim();
-                            String bookAuthor = parts[2].trim();
-                            String bookStatus = parts[3].trim();
-
-                            //Alters the status to checked out
-                            if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("available")) {
-                                bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + ": checked out");
-                            } else {
-                                updatedBooks.add(line);
-                            }
-                        }
-                    }
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, "Error reading the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (bookFound) {
-                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                        for (String book : updatedBooks) {
-                            writer.write(book);
-                            writer.newLine();
-                        }
+                // Execute SQL to update the book status to "checked out" and set the due date
+                String updateQuery = "UPDATE books SET status = 'checked out', due_date = ? WHERE title = ? AND status = 'available'";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    // Set the due date
+                    preparedStatement.setDate(1, new java.sql.Date(System.currentTimeMillis() + 28L * 24 * 60 * 60 * 1000)); // 4 weeks (28 days)
+                    preparedStatement.setString(2, title);
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
                         JOptionPane.showMessageDialog(null, title + " checked out successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(null, "Error writing to the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, title + " not found or is already checked out!", "Not Found", JOptionPane.WARNING_MESSAGE);
                     }
-                } else {
-                    JOptionPane.showMessageDialog(null, title + " not found or is already checked out!", "Not Found", JOptionPane.WARNING_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error updating book status: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-        //Checkin button allows a user to check a book back in. Doing so changes the status of the book from "checked out" to "available"
+
+        //Checkin button allows a user to check a book back in. Doing so changes the status of the book from "checked out" to "available" and sets the due date back to "null"
         btnCheckin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String title = txtCheckin.getText().trim();
-                boolean bookFound = false;
-                List<String> updatedBooks = new ArrayList<>();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        //Split the line by ":" and ","
-                        String[] parts = line.split(":|\\,");
-                        if (parts.length >= 4) {
-                            String barcode = parts[0].trim();
-                            String bookTitle = parts[1].trim();
-                            String bookAuthor = parts[2].trim();
-                            String bookStatus = parts[3].trim();
-
-                            //Alters the status to available
-                            if (bookTitle.equalsIgnoreCase(title) && bookStatus.toLowerCase().contains("checked out")) {
-                                bookFound = true;
-                                updatedBooks.add(barcode + ": " + bookTitle + ", " + bookAuthor + ": available");
-                            } else {
-                                updatedBooks.add(line);
-                            }
-                        }
-                    }
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, "Error reading the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (bookFound) {
-                    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                        for (String book : updatedBooks) {
-                            writer.write(book);
-                            writer.newLine();
-                        }
+                // Execute SQL to update the book status to "available" and set the due date to null
+                String updateQuery = "UPDATE books SET status = 'available', due_date = NULL WHERE title = ? AND status = 'checked out'";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setString(1, title);
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected > 0) {
                         JOptionPane.showMessageDialog(null, title + " checked in successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(null, "Error writing to the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, title + " was not found or is not checked out!", "Not Found", JOptionPane.WARNING_MESSAGE);
                     }
-                } else {
-                    JOptionPane.showMessageDialog(null, title + " was not found or is not checked out!", "Not Found", JOptionPane.WARNING_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error updating book status: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+
 
         //Prints the current collection of books and their statuses
         btnPrint.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                try (Statement statement = connection.createStatement()) {
+                    ResultSet resultSet = statement.executeQuery("SELECT * FROM books");
                     StringBuilder collection = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        collection.append(line).append("\n");
+                    while (resultSet.next()) {
+                        collection.append(resultSet.getString("barcode"))
+                                .append(": ")
+                                .append(resultSet.getString("title"))
+                                .append(", ")
+                                .append(resultSet.getString("author"))
+                                .append(": ")
+                                .append(resultSet.getString("status"))
+                                .append(", ")
+                                .append(resultSet.getString("due_date"))
+                                .append("\n");
                     }
 
                     JTextArea textArea = new JTextArea(collection.toString());
                     textArea.setEditable(false);
                     JScrollPane scrollPane = new JScrollPane(textArea);
                     JOptionPane.showMessageDialog(null, scrollPane, "Library Collection", JOptionPane.PLAIN_MESSAGE);
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, "Error reading the file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Error querying the database: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -346,6 +236,14 @@ public class LibraryManagementGUI extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", "Confirm Exit", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION){
+                    // Close the database connection before exiting
+                    try {
+                        if (connection != null) {
+                            connection.close();
+                        }
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
                     System.exit(0);
                 }
             }
