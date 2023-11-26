@@ -1,0 +1,22 @@
+<component name="libraryTable">
+  <library name="sqlite-jdbc-3.43.2.2-javadoc">
+    <ANNOTATIONS>
+      <root url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/mysql-connector-j-8.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <NATIVE>
+      <root url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" />
+    </NATIVE>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" />
+    </SOURCES>
+    <jarDirectory url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" recursive="false" />
+    <jarDirectory url="jar://$PROJECT_DIR$/src/sqlite-jdbc-3.43.2.2-javadoc.jar!/" recursive="false" type="SOURCES" />
+  </library>
+</component>

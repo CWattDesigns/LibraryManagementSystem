@@ -29,7 +29,7 @@ public class LibraryManagementGUI extends JFrame{
     private JTextField txtCheckin;
     private JButton btnCheckin;
     private Set<String> uniqueBarcodes;
-    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/library_db"; //"library_db" was my database name. Replace this with yours and verify the port info.
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/library_db"; //Replace with database and verify the port info.
     private static final String JDBC_USER = "user"; //Update this with your instance username
     private static final String JDBC_PASSWORD = "password"; //Update this with your instance password
 
@@ -58,7 +58,6 @@ public class LibraryManagementGUI extends JFrame{
         setVisible(true);
 
         try {
-            // Establish the database connection
             connection = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -250,7 +249,6 @@ public class LibraryManagementGUI extends JFrame{
         });
     }
 
-    //Main function to run the LibraryManagementGUI
     public static void main(String[] args){
         LibraryManagementGUI myLibraryGUI = new LibraryManagementGUI();
     }
